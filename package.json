@@ -8,10 +8,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/example/homebridge.git"
+    "url": "git://github.com/lrucker1/homebridge-dotti.git"
   },
   "bugs": {
-    "url": "http://github.com/example/homebridge/issues"
+    "url": "http://github.com/lrucker1/homebridge-dotti/issues"
   },
   "engines": {
     "node": ">=0.12.0",
