@@ -1,6 +1,6 @@
 {
   "name": "homebridge-dotti",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "WITTI Dotti plugin for homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
   "keywords": [
