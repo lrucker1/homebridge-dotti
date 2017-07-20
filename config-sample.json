@@ -1,0 +1,30 @@
+{
+    "bridge": {
+        "name": "Homebridge",
+        "username": "12:34:56:78:90:AB",
+        "port": 51828,
+        "pin": "031-45-154"
+    },
+
+    "description": "WITTI Dotti Homebridge. Supports setting color (HSB) and favorite icons. The icon range is 1-8, with zero for 'off' (all black). Address is optional; if not set, it will use the first Dotti it finds.",
+
+    "accessories": [
+        {
+            "accessory":      "Dotti",
+            "name":           "Dotti",
+            "address": "ff:ee:dd:cc:bb:aa",
+            "characteristics": {
+                "219D8995-2CA4-4A8C-9703-6044AB6ECA25": {
+                    "name": "Icon",
+                    "visible": true,
+                    "valueType": "uint8",
+                    "minValue": 0,
+                    "maxValue": 8,
+                    "stepValue": 1
+                }
+            }
+        }
+    ],
+
+    "platforms": []
+}

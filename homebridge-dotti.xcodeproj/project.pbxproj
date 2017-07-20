@@ -11,6 +11,7 @@
 		943CB3861F211C8100023A9A /* index.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = index.js; sourceTree = "<group>"; };
 		943CB3871F211C8100023A9A /* dotti.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = dotti.js; sourceTree = "<group>"; };
 		943CB3881F2130BE00023A9A /* config-sample.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "config-sample.json"; sourceTree = "<group>"; };
+		943CB3891F21378800023A9A /* readme.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = readme.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -18,6 +19,7 @@
 			isa = PBXGroup;
 			children = (
 				943CB3851F211C8100023A9A /* package.json */,
+				943CB3891F21378800023A9A /* readme.txt */,
 				943CB3861F211C8100023A9A /* index.js */,
 				943CB3871F211C8100023A9A /* dotti.js */,
 				943CB3881F2130BE00023A9A /* config-sample.json */,
