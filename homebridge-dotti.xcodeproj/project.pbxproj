@@ -6,10 +6,21 @@
 	objectVersion = 48;
 	objects = {
 
+/* Begin PBXFileReference section */
+		943CB3851F211C8100023A9A /* package.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		943CB3861F211C8100023A9A /* index.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = index.js; sourceTree = "<group>"; };
+		943CB3871F211C8100023A9A /* dotti.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = dotti.js; sourceTree = "<group>"; };
+		943CB3881F2130BE00023A9A /* config-sample.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "config-sample.json"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		943CB37E1F211C3900023A9A = {
 			isa = PBXGroup;
 			children = (
+				943CB3851F211C8100023A9A /* package.json */,
+				943CB3861F211C8100023A9A /* index.js */,
+				943CB3871F211C8100023A9A /* dotti.js */,
+				943CB3881F2130BE00023A9A /* config-sample.json */,
 			);
 			sourceTree = "<group>";
 		};
