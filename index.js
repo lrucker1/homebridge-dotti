@@ -3,6 +3,7 @@
 var Service, Characteristic, DottiIcon;
 var Noble = require('noble')
 var dotti = require('./dotti')
+//var storage = require('node-persist')
 var inherits = require('util').inherits;
 
 var DottiServiceUuid = "0000fff000001000800000805f9b34fb";
@@ -69,6 +70,24 @@ function DottiAccessory(log, config) {
     this.saturation = 100;
     this.brightness = 100;
     this.icon = 1;
+/*
+    storage.init({
+        logging: true,
+        ttl: ttl
+    }).then(function() {
+        return storage.getItem('icon');
+    }).then(function(icon) {
+        if (icon) {
+            this.icon = icon;
+        } else {
+            storage.setItemSync('icon', this.icon);
+        }
+    }).catch(function(err) {
+        console.error(err);
+        throw err;
+    });
+*/
+
     /**
      * Initialise the Noble service for talking to the bulb
      **/
@@ -113,6 +132,7 @@ DottiAccessory.prototype.setPowerState = function(powerState, callback) {
  */
 DottiAccessory.prototype.loadIcon = function(value, callback) {
     this.icon = value;
+    //storage.setItem('icon', value);
     if (value == 0) {
         this.dottiDevice.toggleOnOff(false, function(err) {
             callback(err);
@@ -236,6 +256,13 @@ DottiAccessory.prototype.getIcon = function(callback) {
         return;
     }
     callback(null, this.icon);
+/*
+    storage.getItem('icon').then(function(icon) {
+        callback(null, icon);
+    }).catch(function(err) {
+        callback(err);
+    });
+*/
 }
 
 DottiAccessory.prototype.getBrightness = function(callback) {
@@ -272,10 +299,15 @@ DottiAccessory.prototype.getHue = function(callback) {
 /**
  * Noble discovery callbacks
  **/
+
+DottiAccessory.prototype.scanForDotti = function() {
+	Noble.startScanning([DottiServiceUuid], false);
+}
+
 DottiAccessory.prototype.nobleStateChange = function(state) {
     if (state == "poweredOn") {
         this.log.info("Starting Noble scan..");
-        Noble.startScanning([DottiServiceUuid], false);
+        this.scanForDotti();
         Noble.on("discover", this.nobleDiscovered.bind(this));
     } else {
         this.log.info("Noble state change to " + state + "; stopping scan.");
@@ -285,15 +317,13 @@ DottiAccessory.prototype.nobleStateChange = function(state) {
 
 DottiAccessory.prototype.nobleDiscovered = function(accessory) {
     if (this.address != null && accessory.address != this.address) {
-        this.log.info("Found accessory for " + this.name + ", address " + accessory.address + ", expected " + this.address + ". Skipping...");
+        this.log.info("Found accessory " + accessory.id + ", address " + accessory.address + ", expected " + this.address + ". Skipping...");
         return;
     }
-	this.log.info("Found accessory for " + this.name + ", address " + accessory.address + ", connecting..");
+    this.log.info("Found accessory " + accessory.id + ", address " + accessory.address + ", connecting..");
     accessory.connect(function(error){
         this.nobleConnected(error, accessory);
     }.bind(this));
-    // discoverServices is broken. Just fetch everything, there's not that much of it.
-	accessory.discoverAllServicesAndCharacteristics(this.nobleCharacteristicsDiscovered.bind(this));
 }
 
 
@@ -301,6 +331,7 @@ DottiAccessory.prototype.nobleConnected = function(error, accessory) {
     if (error) return this.log.error("Noble connection failed: " + error);
     Noble.stopScanning();
     this.log.info("Connection success, discovering services..");
+    // discoverServices is broken. Just fetch everything, there's not that much of it.
     accessory.discoverAllServicesAndCharacteristics(this.nobleCharacteristicsDiscovered.bind(this));
     accessory.on('disconnect', function(error) {
         this.nobleDisconnected(error, accessory);
@@ -310,8 +341,10 @@ DottiAccessory.prototype.nobleConnected = function(error, accessory) {
 DottiAccessory.prototype.nobleDisconnected = function(error, accessory) {
     this.log.info("Disconnected from " + accessory.address + ": " + (error ? error : "(No error)"));
     accessory.removeAllListeners('disconnect');
+    this.nobleCharacteristic = null;
+    this.dottiDevice = null;
     this.log.info("Restarting Noble scan..");
-    Noble.startScanning([], false);
+    this.scanForDotti();
 }
 
 DottiAccessory.prototype.nobleCharacteristicsDiscovered = function(error, services, characteristics) {
