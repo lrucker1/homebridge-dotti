@@ -74,6 +74,10 @@ function DottiAccessory(log, config) {
         .on('set', this.setIcon.bind(this))
         .on('get', this.getIcon.bind(this))
 
+    this.infoService = new Service.AccessoryInformation()
+      .setCharacteristic(Characteristic.Manufacturer, "WITTI")
+      .setCharacteristic(Characteristic.Model, "Dotti")
+
     // The device is read only; set some reasonable defaults.
     this.hue = 24;
     this.saturation = 100;
@@ -154,7 +158,7 @@ function DottiAccessory(log, config) {
 }
 
 DottiAccessory.prototype.getServices = function() {
-    return [this.lightService];
+    return [this.lightService, this.infoService];
 }
 
 
@@ -371,36 +375,44 @@ DottiAccessory.prototype.nobleStateChange = function(state) {
     }
 }
 
-DottiAccessory.prototype.nobleDiscovered = function(accessory) {
-    var testAddress = accessory.address.toLowerCase();
+DottiAccessory.prototype.nobleDiscovered = function(peripheral) {
+    var testAddress = peripheral.address.toLowerCase();
     if (this.address != null && testAddress != this.address) {
-        this.log.info("Found accessory " + accessory.id + ", address " + testAddress + ", expected " + this.address + ". Skipping...");
+        this.log.info("Found peripheral " + peripheral.id + ", address " + testAddress + ", expected " + this.address + ". Skipping...");
         return;
     }
     // Dotti is one of the devices that needs scanning to stop before you connect.
     // It seems to work at first, but it runs into communication problems.
     Noble.stopScanning();
-    this.log.info("Found accessory " + accessory.id + ", address " + testAddress + ", connecting..");
-    accessory.connect(function(error){
-        this.nobleConnected(error, accessory);
+    this.log.info("Found peripheral " + peripheral.id + ", address " + testAddress + ", connecting..");
+    peripheral.connect(function(error){
+        this.nobleConnected(error, peripheral);
     }.bind(this));
+
+    this.infoService.setCharacteristic(Characteristic.Name, peripheral.advertisement.localName)
 }
 
 
-DottiAccessory.prototype.nobleConnected = function(error, accessory) {
+DottiAccessory.prototype.nobleConnected = function(error, peripheral) {
     if (error) return this.log.error("Noble connection failed: " + error);
     Noble.stopScanning();
     this.log.info("Connection success, discovering services..");
     // discoverServices is broken. Just fetch everything, there's not that much of it.
-    accessory.discoverAllServicesAndCharacteristics(this.nobleCharacteristicsDiscovered.bind(this));
-    accessory.on('disconnect', function(error) {
-        this.nobleDisconnected(error, accessory);
+    peripheral.discoverAllServicesAndCharacteristics(this.nobleCharacteristicsDiscovered.bind(this));
+
+    peripheral.on('disconnect', function(error) {
+        this.nobleDisconnected(error, peripheral);
     }.bind(this));
 }
 
-DottiAccessory.prototype.nobleDisconnected = function(error, accessory) {
-    this.log.info("Disconnected from " + accessory.address + ": " + (error ? error : "(No error)"));
-    accessory.removeAllListeners('disconnect');
+/*
+ *TODO: I have seen disconnects followed by quick reconnects and then multiple calls to
+ * "characteristicsDiscovered". Investigate whether this is a problem that needs solving.
+ */
+
+DottiAccessory.prototype.nobleDisconnected = function(error, peripheral) {
+    this.log.info("Disconnected from " + peripheral.address + ": " + (error ? error : "(No error)"));
+    peripheral.removeAllListeners('disconnect');
     this.nobleCharacteristic = null;
     this.dottiDevice = null;
     this.log.info("Restarting Noble scan..");
@@ -409,13 +421,19 @@ DottiAccessory.prototype.nobleDisconnected = function(error, accessory) {
 
 DottiAccessory.prototype.nobleCharacteristicsDiscovered = function(error, services, characteristics) {
     if (error) return this.log.error("Noble characteristic discovery failed: " + error);
+
     for (var characteristic of characteristics) {
         if (characteristic.uuid.toLowerCase() == DottiShortCharacteristicUuid) {
-            this.log.info("Found RGB Characteristic: " + characteristic.uuid);
+            this.log.info("Found Pixel Characteristic: " + characteristic.uuid);
             this.nobleCharacteristic = characteristic;
             this.dottiDevice = new dotti.Dotti(characteristic, this.log);
             // Uncomment this if you aren't sure you're reaching it.
             // DEBUG: this.dottiDevice.loadFavoriteIcon(1, null);
+        } else {
+            var value = characteristic.value;
+            if (value) {
+                this.log.info("Found other Characteristic: " + characteristic.uuid + " " + new Buffer(value, 'hex'));
+            }
         }
     }
 }
